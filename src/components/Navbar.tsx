@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuthStore } from "@/stores";
 import { 
   Menu, 
   MessageSquare, 
@@ -9,12 +11,15 @@ import {
   BookOpen, 
   BarChart3, 
   Users,
-  CloudSun
+  CloudSun,
+  User,
+  LogOut
 } from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuthStore();
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: BarChart3 },
@@ -64,6 +69,35 @@ const Navbar = () => {
             })}
           </div>
 
+          {/* User Menu / Auth Buttons */}
+          <div className="hidden md:flex items-center space-x-4">
+            {isAuthenticated && user ? (
+              <>
+                <Link to="/profile">
+                  <Button variant="ghost" className="flex items-center space-x-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                        {user.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden lg:inline">{user.name}</span>
+                  </Button>
+                </Link>
+                <Button variant="outline" size="sm" onClick={logout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth">
+                <Button variant="earth">
+                  <User className="w-4 h-4 mr-2" />
+                  Login / Sign Up
+                </Button>
+              </Link>
+            )}
+          </div>
+
           {/* Mobile Navigation */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="md:hidden">
@@ -79,6 +113,8 @@ const Navbar = () => {
                   </div>
                   <span className="font-bold text-xl text-foreground">Agrisolve</span>
                 </div>
+
+                {/* Mobile Navigation Links */}
                 {navigation.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -97,6 +133,47 @@ const Navbar = () => {
                     </Link>
                   );
                 })}
+
+                {/* Mobile User Menu */}
+                <div className="border-t border-border pt-4 mt-6">
+                  {isAuthenticated && user ? (
+                    <>
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-accent"
+                      >
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                            {user.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{user.name}</div>
+                          <div className="text-xs text-muted-foreground">{user.role}</div>
+                        </div>
+                      </Link>
+                      <Button 
+                        variant="outline" 
+                        className="w-full mt-2" 
+                        onClick={() => {
+                          logout();
+                          setIsOpen(false);
+                        }}
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <Link to="/auth" onClick={() => setIsOpen(false)}>
+                      <Button variant="earth" className="w-full">
+                        <User className="w-4 h-4 mr-2" />
+                        Login / Sign Up
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
