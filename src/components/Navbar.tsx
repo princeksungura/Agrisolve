@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuthStore } from "@/stores";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Menu, 
   MessageSquare, 
@@ -19,7 +19,7 @@ import {
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { profile, isAuthenticated, signOut } = useAuth();
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: BarChart3 },
@@ -71,19 +71,19 @@ const Navbar = () => {
 
           {/* User Menu / Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {isAuthenticated && user ? (
+            {isAuthenticated && profile ? (
               <>
                 <Link to="/profile">
                   <Button variant="ghost" className="flex items-center space-x-2">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                        {user.name.split(' ').map(n => n[0]).join('')}
+                        {profile.name.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden lg:inline">{user.name}</span>
+                    <span className="hidden lg:inline">{profile.name}</span>
                   </Button>
                 </Link>
-                <Button variant="outline" size="sm" onClick={logout}>
+                <Button variant="outline" size="sm" onClick={signOut}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
                 </Button>
@@ -136,7 +136,7 @@ const Navbar = () => {
 
                 {/* Mobile User Menu */}
                 <div className="border-t border-border pt-4 mt-6">
-                  {isAuthenticated && user ? (
+                  {isAuthenticated && profile ? (
                     <>
                       <Link
                         to="/profile"
@@ -145,19 +145,19 @@ const Navbar = () => {
                       >
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                            {user.name.split(' ').map(n => n[0]).join('')}
+                            {profile.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{user.name}</div>
-                          <div className="text-xs text-muted-foreground">{user.role}</div>
+                          <div className="font-medium">{profile.name}</div>
+                          <div className="text-xs text-muted-foreground">{profile.role}</div>
                         </div>
                       </Link>
                       <Button 
                         variant="outline" 
                         className="w-full mt-2" 
                         onClick={() => {
-                          logout();
+                          signOut();
                           setIsOpen(false);
                         }}
                       >

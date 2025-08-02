@@ -14,7 +14,197 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      forum_posts: {
+        Row: {
+          author_id: string
+          author_name: string
+          author_role: string
+          category: string
+          content: string
+          created_at: string | null
+          id: string
+          images: string[] | null
+          liked_by: string[] | null
+          likes: number | null
+          status: string
+          title: string
+          updated_at: string | null
+          views: number | null
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          author_role: string
+          category: string
+          content: string
+          created_at?: string | null
+          id?: string
+          images?: string[] | null
+          liked_by?: string[] | null
+          likes?: number | null
+          status?: string
+          title: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          author_role?: string
+          category?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          images?: string[] | null
+          liked_by?: string[] | null
+          likes?: number | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Relationships: []
+      }
+      forum_replies: {
+        Row: {
+          author_id: string
+          author_name: string
+          author_role: string
+          content: string
+          created_at: string | null
+          id: string
+          is_accepted: boolean | null
+          liked_by: string[] | null
+          likes: number | null
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          author_role: string
+          content: string
+          created_at?: string | null
+          id?: string
+          is_accepted?: boolean | null
+          liked_by?: string[] | null
+          likes?: number | null
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          author_role?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_accepted?: boolean | null
+          liked_by?: string[] | null
+          likes?: number | null
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listings: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          id: string
+          images: string[] | null
+          location: string
+          price: number
+          quantity: string
+          seller_id: string
+          seller_name: string
+          seller_phone: string
+          status: string
+          title: string
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          id?: string
+          images?: string[] | null
+          location: string
+          price: number
+          quantity: string
+          seller_id: string
+          seller_name: string
+          seller_phone: string
+          status?: string
+          title: string
+          unit: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          images?: string[] | null
+          location?: string
+          price?: number
+          quantity?: string
+          seller_id?: string
+          seller_name?: string
+          seller_phone?: string
+          status?: string
+          title?: string
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          id: string
+          location: string
+          name: string
+          phone: string | null
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          location: string
+          name: string
+          phone?: string | null
+          role: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          location?: string
+          name?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

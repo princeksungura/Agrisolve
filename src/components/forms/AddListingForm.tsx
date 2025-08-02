@@ -8,8 +8,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { listingSchema, type ListingFormData } from "@/lib/validations";
-import { useMarketplaceStore } from "@/stores";
-import { useAuthStore } from "@/stores";
+import { useAuth } from "@/hooks/useAuth";
+import { createListing, uploadFile } from "@/services/supabase";
 import { useState } from "react";
 import { Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -34,10 +34,10 @@ interface AddListingFormProps {
 }
 
 const AddListingForm = ({ onSuccess }: AddListingFormProps) => {
-  const { user } = useAuthStore();
-  const { addListing } = useMarketplaceStore();
+  const { profile, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const form = useForm<ListingFormData>({
     resolver: zodResolver(listingSchema),
@@ -48,8 +48,8 @@ const AddListingForm = ({ onSuccess }: AddListingFormProps) => {
       unit: "",
       quantity: "",
       category: "",
-      location: user?.location || "",
-      sellerPhone: user?.phone || "",
+      location: profile?.location || "",
+      sellerPhone: profile?.phone || "",
     },
   });
 
@@ -57,21 +57,16 @@ const AddListingForm = ({ onSuccess }: AddListingFormProps) => {
     const files = event.target.files;
     if (!files) return;
 
-    // In a real app, you'd upload to storage service
-    // For now, we'll use placeholder URLs
-    const newImages = Array.from(files).map((file, index) => 
-      `https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400&h=300&fit=crop&crop=center&q=80&${Date.now()}-${index}`
-    );
-    
-    setImages(prev => [...prev, ...newImages].slice(0, 5)); // Max 5 images
+    const newFiles = Array.from(files);
+    setImages(prev => [...prev, ...newFiles].slice(0, 5)); // Max 5 images
   };
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const onSubmit = (data: ListingFormData) => {
-    if (!user) {
+  const onSubmit = async (data: ListingFormData) => {
+    if (!isAuthenticated || !profile) {
       toast({
         title: "Authentication required",
         description: "Please log in to create a listing",
@@ -80,22 +75,45 @@ const AddListingForm = ({ onSuccess }: AddListingFormProps) => {
       return;
     }
 
-    addListing({
-      ...data,
-      images,
-      sellerId: user.id,
-      sellerName: user.name,
-      status: "available",
-    });
+    try {
+      setUploading(true);
 
-    toast({
-      title: "Listing created successfully!",
-      description: "Your produce is now available in the marketplace",
-    });
+      const imageUrls = await Promise.all(
+        images.map(file => uploadFile(file))
+      );
 
-    form.reset();
-    setImages([]);
-    onSuccess?.();
+      await createListing({
+        title: data.title,
+        description: data.description,
+        price: data.price,
+        unit: data.unit,
+        quantity: data.quantity,
+        category: data.category,
+        location: data.location,
+        images: imageUrls,
+        seller_id: profile.user_id,
+        seller_name: profile.name,
+        seller_phone: data.sellerPhone,
+        status: "available",
+      });
+
+      toast({
+        title: "Listing created successfully!",
+        description: "Your produce is now available in the marketplace",
+      });
+
+      form.reset();
+      setImages([]);
+      onSuccess?.();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create listing. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -284,7 +302,7 @@ const AddListingForm = ({ onSuccess }: AddListingFormProps) => {
                   {images.map((image, index) => (
                     <div key={index} className="relative">
                       <img
-                        src={image}
+                        src={URL.createObjectURL(image)}
                         alt={`Upload ${index + 1}`}
                         className="w-full h-24 object-cover rounded-lg"
                       />
@@ -307,9 +325,9 @@ const AddListingForm = ({ onSuccess }: AddListingFormProps) => {
               type="submit" 
               variant="earth" 
               className="w-full"
-              disabled={form.formState.isSubmitting}
+              disabled={uploading}
             >
-              {form.formState.isSubmitting ? "Creating Listing..." : "Create Listing"}
+              {uploading ? "Creating Listing..." : "Create Listing"}
             </Button>
           </form>
         </Form>

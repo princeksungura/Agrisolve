@@ -9,8 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from "@/lib/validations";
-import { useAuthStore } from "@/stores";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff } from "lucide-react";
 
 interface AuthFormsProps {
@@ -20,8 +19,7 @@ interface AuthFormsProps {
 const AuthForms = ({ onSuccess }: AuthFormsProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { login } = useAuthStore();
-  const { toast } = useToast();
+  const { signIn, signUp } = useAuth();
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -44,47 +42,23 @@ const AuthForms = ({ onSuccess }: AuthFormsProps) => {
     },
   });
 
-  const onLogin = (data: LoginFormData) => {
-    // In a real app, this would make an API call
-    // For demo purposes, we'll create a mock user
-    const mockUser = {
-      id: "user123",
-      email: data.email,
-      name: "John Farmer",
-      role: "farmer" as const,
-      location: "Kiambu County",
-      phone: "+254 712 345 678",
-    };
-
-    login(mockUser);
-    
-    toast({
-      title: "Welcome back!",
-      description: "You have been successfully logged in.",
-    });
-
-    onSuccess?.();
+  const onLogin = async (data: LoginFormData) => {
+    const { error } = await signIn(data.email, data.password);
+    if (!error) {
+      onSuccess?.();
+    }
   };
 
-  const onRegister = (data: RegisterFormData) => {
-    // In a real app, this would make an API call
-    const newUser = {
-      id: `user_${Date.now()}`,
-      email: data.email,
+  const onRegister = async (data: RegisterFormData) => {
+    const { error } = await signUp(data.email, data.password, {
       name: data.name,
       role: data.role,
       location: data.location,
       phone: data.phone,
-    };
-
-    login(newUser);
-    
-    toast({
-      title: "Account created successfully!",
-      description: "Welcome to the Agrisolve community.",
     });
-
-    onSuccess?.();
+    if (!error) {
+      onSuccess?.();
+    }
   };
 
   return (
