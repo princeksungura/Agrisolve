@@ -146,7 +146,7 @@ const AddListingForm = ({ onSuccess }: AddListingFormProps) => {
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Describe your produce, quality, growing methods..."
+                      placeholder="Describe your produce in detail - quality, growing methods, harvest date, storage conditions, etc. Be specific to attract serious buyers."
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -274,11 +274,11 @@ const AddListingForm = ({ onSuccess }: AddListingFormProps) => {
 
             {/* Image Upload */}
             <div className="space-y-4">
-              <Label>Product Images (Optional)</Label>
+              <Label>Product Images (Recommended - listings with photos get 3x more views)</Label>
               <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
                 <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <div className="text-sm text-muted-foreground mb-4">
-                  Upload up to 5 images of your produce
+                  Upload up to 5 high-quality images of your produce. Show different angles and close-ups of quality.
                 </div>
                 <input
                   type="file"
@@ -319,6 +319,19 @@ const AddListingForm = ({ onSuccess }: AddListingFormProps) => {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Tips for Better Listings */}
+            <div className="bg-primary/10 rounded-lg p-4">
+              <h4 className="font-medium text-primary mb-2">💡 Tips for successful listings:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Use clear, high-quality photos showing your produce</li>
+                <li>• Include harvest date and expected shelf life</li>
+                <li>• Mention organic certification if applicable</li>
+                <li>• Be specific about quantity and packaging</li>
+                <li>• Respond quickly to buyer inquiries</li>
+                <li>• Set competitive but fair prices</li>
+              </ul>
             </div>
 
             <Button 
