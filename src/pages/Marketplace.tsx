@@ -5,82 +5,56 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShoppingBag, Search, MapPin, Phone, Filter, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getListings } from "@/services/supabase";
+import AddListingForm from "@/components/forms/AddListingForm";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 const Marketplace = () => {
-  const listings = [
-    {
-      id: 1,
-      title: "Fresh Organic Tomatoes",
-      price: "KSh 80/kg",
-      seller: "Grace Farm Co-op",
-      location: "Kiambu County",
-      quantity: "500 kg available",
-      image: "🍅",
-      status: "Available",
-      phone: "+254 712 345 678",
-      description: "Grade A tomatoes, perfect for hotels and restaurants"
-    },
-    {
-      id: 2,
-      title: "Yellow Maize (Dry)",
-      price: "KSh 45/kg",
-      seller: "Green Valley Farmers",
-      location: "Nakuru County", 
-      quantity: "2 tons available",
-      image: "🌽",
-      status: "Available",
-      phone: "+254 723 456 789",
-      description: "High quality maize, 13% moisture content"
-    },
-    {
-      id: 3,
-      title: "Fresh Cow Milk",
-      price: "KSh 60/liter",
-      seller: "Dairy Farmers SACCO",
-      location: "Meru County",
-      quantity: "200 liters daily",
-      image: "🥛",
-      status: "Daily Supply",
-      phone: "+254 734 567 890",
-      description: "Fresh milk delivered twice daily"
-    },
-    {
-      id: 4,
-      title: "Irish Potatoes",
-      price: "KSh 35/kg",
-      seller: "Highland Growers",
-      location: "Nyandarua County",
-      quantity: "1.5 tons available",
-      image: "🥔",
-      status: "Limited",
-      phone: "+254 745 678 901",
-      description: "Premium potatoes, perfect for french fries"
-    },
-    {
-      id: 5,
-      title: "Free Range Eggs",
-      price: "KSh 15/piece",
-      seller: "Sunrise Poultry",
-      location: "Machakos County",
-      quantity: "500 eggs available",
-      image: "🥚",
-      status: "Available",
-      phone: "+254 756 789 012",
-      description: "Fresh eggs from free-range chickens"
-    },
-    {
-      id: 6,
-      title: "Passion Fruits",
-      price: "KSh 120/kg",
-      seller: "Tropical Fruits Ltd",
-      location: "Murang'a County",
-      quantity: "300 kg available",
-      image: "🟠",
-      status: "Available",
-      phone: "+254 767 890 123",
-      description: "Sweet purple passion fruits, export quality"
-    }
-  ];
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const data = await getListings();
+        setListings(data);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchListings();
+  }, []);
+
+  const handleListingAdded = () => {
+    // Refresh listings after adding a new one
+    const fetchListings = async () => {
+      try {
+        const data = await getListings();
+        setListings(data);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      }
+    };
+    fetchListings();
+  };
+
+  const getCategoryEmoji = (category: string) => {
+    const emojiMap: { [key: string]: string } = {
+      'vegetables': '🥬',
+      'fruits': '🍎',
+      'grains': '🌾',
+      'dairy': '🥛',
+      'poultry': '🐔',
+      'livestock': '🐄',
+      'herbs': '🌿',
+      'nuts': '🥜'
+    };
+    return emojiMap[category.toLowerCase()] || '🌱';
+  };
 
   const categories = ["All", "Grains", "Vegetables", "Fruits", "Dairy", "Poultry", "Livestock"];
 
@@ -95,10 +69,17 @@ const Marketplace = () => {
             <h1 className="text-3xl font-bold text-foreground mb-2">Marketplace</h1>
             <p className="text-muted-foreground">Buy and sell fresh produce directly from farmers</p>
           </div>
-          <Button variant="earth" className="mt-4 md:mt-0">
-            <Plus className="w-4 h-4 mr-2" />
-            List Your Produce
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="earth" className="mt-4 md:mt-0">
+                <Plus className="w-4 h-4 mr-2" />
+                List Your Produce
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <AddListingForm onSuccess={handleListingAdded} />
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Filters */}
@@ -144,7 +125,7 @@ const Marketplace = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="earth-shadow text-center">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-primary">150+</div>
+              <div className="text-2xl font-bold text-primary">{listings.length}</div>
               <div className="text-sm text-muted-foreground">Active Listings</div>
             </CardContent>
           </Card>
@@ -156,57 +137,80 @@ const Marketplace = () => {
           </Card>
           <Card className="earth-shadow text-center">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-primary">25+</div>
-              <div className="text-sm text-muted-foreground">Product Types</div>
+              <div className="text-2xl font-bold text-primary">8</div>
+              <div className="text-sm text-muted-foreground">Categories</div>
             </CardContent>
           </Card>
           <Card className="earth-shadow text-center">
             <CardContent className="pt-6">
               <div className="text-2xl font-bold text-primary-glow">⭐ 4.8</div>
-              <div className="text-sm text-muted-foreground">Avg Rating</div>
+              <div className="text-sm text-muted-foreground">Platform Rating</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Listings Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {listings.map((listing) => (
-            <Card key={listing.id} className="earth-shadow hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="text-4xl mb-2">{listing.image}</div>
-                  <Badge variant={listing.status === "Available" ? "default" : listing.status === "Limited" ? "destructive" : "secondary"}>
-                    {listing.status}
-                  </Badge>
-                </div>
-                <CardTitle className="text-lg line-clamp-2">{listing.title}</CardTitle>
-                <div className="text-2xl font-bold text-primary">{listing.price}</div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground line-clamp-2">{listing.description}</p>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <span>{listing.seller} • {listing.location}</span>
+          {loading ? (
+            <div className="col-span-full text-center py-8">
+              <div className="text-muted-foreground">Loading marketplace listings...</div>
+            </div>
+          ) : listings.length === 0 ? (
+            <div className="col-span-full text-center py-8">
+              <div className="text-muted-foreground mb-4">No listings yet. Be the first to sell!</div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add First Listing
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <AddListingForm onSuccess={handleListingAdded} />
+                </DialogContent>
+              </Dialog>
+            </div>
+          ) : (
+            listings.map((listing) => (
+              <Card key={listing.id} className="earth-shadow hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="text-4xl mb-2">{getCategoryEmoji(listing.category)}</div>
+                    <Badge variant={listing.status === "available" ? "default" : listing.status === "reserved" ? "destructive" : "secondary"}>
+                      {listing.status === "available" ? "Available" : listing.status}
+                    </Badge>
                   </div>
-                  <div className="text-sm font-medium text-foreground">
-                    {listing.quantity}
+                  <CardTitle className="text-lg line-clamp-2">{listing.title}</CardTitle>
+                  <div className="text-2xl font-bold text-primary">KSh {listing.price}/{listing.unit}</div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground line-clamp-2">{listing.description}</p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      <span>{listing.seller_name} • {listing.location}</span>
+                    </div>
+                    <div className="text-sm font-medium text-foreground">
+                      {listing.quantity} {listing.unit} available
+                    </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Phone className="w-4 h-4 mr-1" />
-                    Call
-                  </Button>
-                  <Button variant="default" size="sm" className="w-full">
-                    Make Offer
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    <Button variant="outline" size="sm" className="w-full" asChild>
+                      <a href={`tel:${listing.seller_phone}`}>
+                        <Phone className="w-4 h-4 mr-1" />
+                        Call
+                      </a>
+                    </Button>
+                    <Button variant="default" size="sm" className="w-full">
+                      Contact Seller
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         {/* Load More */}

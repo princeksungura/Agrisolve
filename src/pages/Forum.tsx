@@ -4,62 +4,51 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MessageSquare, ThumbsUp, Search, Plus, Tag } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getForumPosts } from "@/services/supabase";
+import { formatDistanceToNow } from "date-fns";
+import AddForumPostForm from "@/components/forms/AddForumPostForm";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 const Forum = () => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const categories = [
-    { name: "Crops", count: 156, color: "bg-green-100 text-green-800" },
-    { name: "Livestock", count: 89, color: "bg-blue-100 text-blue-800" },
-    { name: "Pest Control", count: 234, color: "bg-red-100 text-red-800" },
-    { name: "Weather", count: 67, color: "bg-yellow-100 text-yellow-800" },
-    { name: "Marketing", count: 145, color: "bg-purple-100 text-purple-800" },
+    { name: "Crops", count: 0, color: "bg-green-100 text-green-800" },
+    { name: "Livestock", count: 0, color: "bg-blue-100 text-blue-800" },
+    { name: "Pest Control", count: 0, color: "bg-red-100 text-red-800" },
+    { name: "Weather", count: 0, color: "bg-yellow-100 text-yellow-800" },
+    { name: "Marketing", count: 0, color: "bg-purple-100 text-purple-800" },
   ];
 
-  const questions = [
-    {
-      id: 1,
-      title: "Brown spots appearing on my tomato leaves - need urgent help!",
-      author: "John Kamau",
-      category: "Pest Control",
-      replies: 12,
-      likes: 24,
-      timeAgo: "2 hours ago",
-      hasImage: true,
-      solved: false
-    },
-    {
-      id: 2,
-      title: "When is the best time to plant maize in Nakuru county?",
-      author: "Mary Wanjiku",
-      category: "Crops",
-      replies: 8,
-      likes: 15,
-      timeAgo: "4 hours ago",
-      hasImage: false,
-      solved: true
-    },
-    {
-      id: 3,
-      title: "Organic fertilizer recipe that really works",
-      author: "Peter Mwangi",
-      category: "Crops",
-      replies: 25,
-      likes: 45,
-      timeAgo: "1 day ago",
-      hasImage: true,
-      solved: false
-    },
-    {
-      id: 4,
-      title: "My dairy cows are producing less milk - what could be wrong?",
-      author: "Grace Njeri",
-      category: "Livestock",
-      replies: 15,
-      likes: 28,
-      timeAgo: "2 days ago",
-      hasImage: false,
-      solved: false
-    }
-  ];
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const data = await getForumPosts();
+        setPosts(data);
+      } catch (error) {
+        console.error('Error fetching forum posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  const handlePostAdded = () => {
+    // Refresh posts after adding a new one
+    const fetchPosts = async () => {
+      try {
+        const data = await getForumPosts();
+        setPosts(data);
+      } catch (error) {
+        console.error('Error fetching forum posts:', error);
+      }
+    };
+    fetchPosts();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,10 +61,17 @@ const Forum = () => {
             <h1 className="text-3xl font-bold text-foreground mb-2">Community Forum</h1>
             <p className="text-muted-foreground">Get help from fellow farmers and agricultural experts</p>
           </div>
-          <Button variant="earth" className="mt-4 md:mt-0">
-            <Plus className="w-4 h-4 mr-2" />
-            Ask Question
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="earth" className="mt-4 md:mt-0">
+                <Plus className="w-4 h-4 mr-2" />
+                Ask Question
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <AddForumPostForm onSuccess={handlePostAdded} />
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -127,45 +123,66 @@ const Forum = () => {
 
             {/* Questions List */}
             <div className="space-y-4">
-              {questions.map((question) => (
-                <Card key={question.id} className="earth-shadow hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant={question.solved ? "default" : "outline"} className="text-xs">
-                            {question.solved ? "✓ Solved" : "Needs Help"}
-                          </Badge>
-                          <Badge variant="secondary">{question.category}</Badge>
-                          {question.hasImage && (
-                            <Badge variant="outline" className="text-xs">📷 Photo</Badge>
-                          )}
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground">Loading forum posts...</div>
+                </div>
+              ) : posts.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground mb-4">No questions yet. Be the first to ask!</div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Ask the First Question
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <AddForumPostForm onSuccess={handlePostAdded} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              ) : (
+                posts.map((post) => (
+                  <Card key={post.id} className="earth-shadow hover:shadow-lg transition-shadow cursor-pointer">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant={post.status === "solved" ? "default" : "outline"} className="text-xs">
+                              {post.status === "solved" ? "✓ Solved" : "Needs Help"}
+                            </Badge>
+                            <Badge variant="secondary">{post.category}</Badge>
+                            {post.images && post.images.length > 0 && (
+                              <Badge variant="outline" className="text-xs">📷 Photo</Badge>
+                            )}
+                          </div>
+                          
+                          <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
+                            {post.title}
+                          </h3>
+                          
+                          <div className="flex items-center justify-between text-sm text-muted-foreground">
+                            <span>Asked by {post.author_name} ({post.author_role})</span>
+                            <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+                          </div>
                         </div>
                         
-                        <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
-                          {question.title}
-                        </h3>
-                        
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
-                          <span>Asked by {question.author}</span>
-                          <span>{question.timeAgo}</span>
+                        <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <ThumbsUp className="w-4 h-4" />
+                            <span>{post.likes}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageSquare className="w-4 h-4" />
+                            <span>{post.views}</span>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="w-4 h-4" />
-                          <span>{question.replies}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <ThumbsUp className="w-4 h-4" />
-                          <span>{question.likes}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
 
             {/* Load More */}

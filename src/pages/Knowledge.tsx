@@ -15,6 +15,7 @@ const Knowledge = () => {
     { name: "Post Harvest", count: 15, icon: "📦" }
   ];
 
+  // Featured content can be loaded from a CMS or static data
   const featured = [
     {
       id: 1,
