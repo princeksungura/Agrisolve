@@ -1,32 +1,34 @@
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Search, Filter, X } from "lucide-react";
+import { Search } from "lucide-react";
 
 interface MarketplaceFiltersProps {
   searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
   selectedCategory: string;
-  selectedLocation: string;
-  sortBy: string;
-  onSearchChange: (query: string) => void;
   onCategoryChange: (category: string) => void;
+  selectedLocation: string;
   onLocationChange: (location: string) => void;
+  sortBy: string;
   onSortChange: (sort: string) => void;
-  onClearFilters: () => void;
+  viewMode: "grid" | "list";
+  onViewModeChange: (mode: "grid" | "list") => void;
 }
 
 const MarketplaceFilters = ({
   searchQuery,
+  onSearchQueryChange,
   selectedCategory,
-  selectedLocation,
-  sortBy,
-  onSearchChange,
   onCategoryChange,
+  selectedLocation,
   onLocationChange,
+  sortBy,
   onSortChange,
-  onClearFilters
+  viewMode,
+  onViewModeChange
 }: MarketplaceFiltersProps) => {
   const categories = [
     { value: "all", label: "All Categories" },
@@ -54,10 +56,8 @@ const MarketplaceFilters = ({
     { value: "embu", label: "Embu County" }
   ];
 
-  const hasActiveFilters = searchQuery || selectedCategory !== "all" || selectedLocation !== "all";
-
   return (
-    <Card className="earth-shadow">
+    <Card className="earth-shadow mb-8">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
           <div className="relative">
@@ -66,7 +66,7 @@ const MarketplaceFilters = ({
               placeholder="Search products, sellers..." 
               className="pl-10" 
               value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onChange={(e) => onSearchQueryChange(e.target.value)}
             />
           </div>
           
@@ -105,45 +105,50 @@ const MarketplaceFilters = ({
               <SelectItem value="oldest">Oldest First</SelectItem>
               <SelectItem value="price-low">Price: Low to High</SelectItem>
               <SelectItem value="price-high">Price: High to Low</SelectItem>
-              <SelectItem value="name-az">Name: A to Z</SelectItem>
-              <SelectItem value="name-za">Name: Z to A</SelectItem>
             </SelectContent>
           </Select>
 
-          <Button 
-            variant="outline" 
-            onClick={onClearFilters}
-            disabled={!hasActiveFilters}
-            className="w-full"
-          >
-            <X className="w-4 h-4 mr-2" />
-            Clear All
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant={viewMode === "grid" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => onViewModeChange("grid")}
+              className="flex-1"
+            >
+              Grid
+            </Button>
+            <Button 
+              variant={viewMode === "list" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => onViewModeChange("list")}
+              className="flex-1"
+            >
+              List
+            </Button>
+          </div>
         </div>
 
         {/* Active Filters Display */}
-        {hasActiveFilters && (
-          <div className="flex flex-wrap gap-2">
-            {searchQuery && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Search: "{searchQuery}"
-                <button onClick={() => onSearchChange("")} className="ml-1 hover:text-destructive">×</button>
-              </Badge>
-            )}
-            {selectedCategory !== "all" && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Category: {categories.find(c => c.value === selectedCategory)?.label}
-                <button onClick={() => onCategoryChange("all")} className="ml-1 hover:text-destructive">×</button>
-              </Badge>
-            )}
-            {selectedLocation !== "all" && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                Location: {locations.find(l => l.value === selectedLocation)?.label}
-                <button onClick={() => onLocationChange("all")} className="ml-1 hover:text-destructive">×</button>
-              </Badge>
-            )}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {searchQuery && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              Search: "{searchQuery}"
+              <button onClick={() => onSearchQueryChange("")} className="ml-1 hover:text-destructive">×</button>
+            </Badge>
+          )}
+          {selectedCategory !== "all" && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              Category: {categories.find(c => c.value === selectedCategory)?.label}
+              <button onClick={() => onCategoryChange("all")} className="ml-1 hover:text-destructive">×</button>
+            </Badge>
+          )}
+          {selectedLocation !== "all" && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              Location: {locations.find(l => l.value === selectedLocation)?.label}
+              <button onClick={() => onLocationChange("all")} className="ml-1 hover:text-destructive">×</button>
+            </Badge>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
